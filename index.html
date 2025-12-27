@@ -1,40 +1,210 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magic Christmas - Final Clean</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<meta charset="UTF-8">
+<title>Quiz Dẫn luận Ngôn ngữ – 100 câu FULL</title>
+<style>
+body{font-family:Arial;background:#eef2f3;padding:20px}
+.quiz{max-width:900px;background:#fff;padding:25px;margin:auto;border-radius:10px}
+button{padding:10px 20px;margin-top:15px;font-size:16px}
+.correct{color:green}
+.wrong{color:red}
+</style>
+</head>
+<body>
 
-    <style>
-        body { margin: 0; overflow: hidden; background-color: #000000; font-family: 'Segoe UI', sans-serif; }
-        #canvas-container { width: 100%; height: 100vh; display: block; }
-        
-        /* UI Center Vandiep */
-        #ui-layer {
-            position: absolute; bottom: 30px; width: 100%;
-            text-align: center; pointer-events: none; z-index: 100;
-        }
-        
-        /* Guide text Vandiep */
-        .guide { 
-            color: rgba(255, 255, 255, 0.6); 
-            font-size: 13px; 
-            margin-bottom: 20px; 
-            text-shadow: 0 2px 4px black;
-        }
+<div class="quiz">
+<h3 id="count"></h3>
+<h2 id="q"></h2>
+<div id="a"></div>
+<button onclick="check()">Trả lời</button>
+<button onclick="next()">Câu tiếp</button>
+<p id="r"></p>
+<h3>Điểm: <span id="s">0</span>/100</h3>
+</div>
 
-        button {
-            pointer-events: auto; cursor: pointer;
-            background: linear-gradient(to bottom, #D32F2F, #8B0000); 
-            color: #FFF; border: 2px solid #FFD700;
-            padding: 15px 50px; border-radius: 30px; 
-            font-weight: 800; font-size: 16px;
-            box-shadow: 0 0 30px rgba(255, 0, 0, 0.6);
+<script>
+const quiz=[
+{q:"Ngôn ngữ là gì?",a:["Hệ thống đơn vị","Quy tắc giao tiếp","Do xã hội quy ước","A, B, C"],c:3},
+{q:"Phát biểu nào sau đây là sai?",a:["Ngôn ngữ là thuộc tính tinh thần","Ngôn ngữ là thuộc tính vật chất","Ngôn ngữ là hiện tượng xã hội","Không thuộc kiến trúc thượng tầng"],c:1},
+{q:"Ngôn ngữ có mấy bản chất?",a:["2: tín hiệu & ký hiệu","2: tín hiệu & xã hội","3: tín hiệu, ký hiệu, giao tiếp","3: tín hiệu, giao tiếp, tư duy"],c:1},
+{q:"Ngôn ngữ thống nhất nhưng không đồng nhất với tư duy vì?",a:["Không có ngôn ngữ thì không có tư duy","Ngôn ngữ là hệ thống","Ngôn ngữ là vật chất, tư duy là tinh thần","Ngôn ngữ là phương tiện tư duy"],c:2},
+{q:"Một ý nghĩa ngữ pháp biểu thị bằng nhiều phụ tố là loại hình?",a:["Đơn lập","Hòa kết","Chắp dính","Đa tổng hợp"],c:1},
+{q:"Phát biểu nào sau đây là sai?",a:["Ngôn ngữ không phải hệ thống tín hiệu","Không phải hiện tượng tự nhiên","Không phải bản năng","Không phải hiện tượng cá nhân"],c:0},
+{q:"Ngôn ngữ sinh ra do nhu cầu giao tiếp là?",a:["Hiện tượng cá nhân","Hiện tượng xã hội","Hệ thống tín hiệu","Tính dân tộc"],c:1},
+{q:"Không có ngôn ngữ thì không có tư duy là nói về?",a:["Công cụ tư duy","Thuộc về tư duy","Sự thống nhất ngôn ngữ – tư duy","Sự khác biệt"],c:2},
+{q:"Âm /r/ trong 'rực rỡ' là phụ âm gì?",a:["Môi","Lưỡi","Rung","Tắc"],c:2},
+{q:"Âm tiết phân thành mấy loại?",a:["4 loại cao thấp","2 loại","4 loại mở – khép","A và B"],c:2},
+
+{q:"Vì sao ngôn ngữ có tính hệ thống?",a:["Do nhiều âm vị","Theo tiêu chí hệ thống","Gồm nhiều bộ phận","Theo chức năng"],c:1},
+{q:"Ngôn ngữ gồm những đơn vị nào?",a:["Từ, câu, hình vị","Câu, từ, âm vị","Âm vị, hình vị, từ, câu","Không có"],c:2},
+{q:"Chức năng chính của âm vị là?",a:["Thông báo","Khu biệt nghĩa từ","Định danh","Tạo từ"],c:1},
+{q:"Chức năng chính của hình vị là?",a:["Thông báo","Khu biệt nghĩa","Định danh","Tạo từ"],c:3},
+{q:"Chức năng chính của từ là?",a:["Thông báo","Khu biệt nghĩa câu","Định danh","Tạo âm"],c:2},
+{q:"Chức năng chính của câu là?",a:["Thông báo","Khu biệt nghĩa","Định danh","Tạo nghĩa"],c:0},
+{q:"'Làm sao cắt nghĩa được tình yêu' có bao nhiêu âm vị?",a:["19","25","7","6"],c:0},
+{q:"'Em bảo anh đi đi!' có bao nhiêu âm vị?",a:["5","4","12","11"],c:3},
+{q:"'Người đâu gặp gỡ làm chi' có mấy hình vị?",a:["17","19","6","5"],c:2},
+{q:"'Em bảo anh đừng đợi/Sao anh vội về ngay' có mấy hình vị?",a:["26","10","9","Không đúng"],c:1},
+
+{q:"Các yếu tố ngôn ngữ sắp đặt theo quy luật là?",a:["Tín hiệu","Sự sắp đặt","Hệ thống","Cấu trúc"],c:2},
+{q:"'Tổng thể mối quan hệ giữa các yếu tố' là khái niệm?",a:["Hệ thống","Cấu trúc","Ngôn ngữ","Tín hiệu"],c:1},
+{q:"[s, tr] trong 'sẽ, sau, trên' là phụ âm gì?",a:["Âm răng","Âm môi","Âm lợi","Âm quặt lưỡi"],c:3},
+{q:"Phân loại ngôn ngữ theo cấu trúc là phương pháp?",a:["Tổng hợp","Tổng kết","So sánh lịch sử","So sánh loại hình"],c:3},
+{q:"Ngôn ngữ đơn lập có đặc điểm?",a:["Biến hình","Không biến hình","Dùng hư từ","B và C"],c:3},
+{q:"Tiếng Việt thuộc loại hình?",a:["Đơn lập","Hòa kết","Chắp dính","Đa tổng hợp"],c:0},
+{q:"Ngôn ngữ biến hình gọi khác là?",a:["Đơn lập","Chắp dính","Hòa kết","Đa tổng hợp"],c:2},
+{q:"Thay 'đọc sách' bằng 'đọc báo' là quan hệ?",a:["Liên tưởng","Tuyến tính","Cấp bậc","Không"],c:0},
+{q:"Bổ sung thêm thành phần trong câu là quan hệ?",a:["Sai","Cấp bậc","Liên tưởng","Tuyến tính"],c:3},
+{q:"Nguồn chính tạo luồng hơi?",a:["Phổi","Miệng","Mũi","Bụng"],c:0},
+
+{q:"Âm tố là gì?",a:["Đơn vị lớn nhất","Đơn vị âm thanh nhỏ nhất","Đơn vị ngữ nghĩa","Âm tiết"],c:1},
+{q:"Âm tố xác định dựa trên?",a:["Phát âm & ngữ nghĩa","Cấu âm & thính giác","Cấu tạo & ngữ nghĩa","Cấu tạo & phát âm"],c:1},
+{q:"Có mấy loại âm tố?",a:["2: nguyên âm & phụ âm","1: âm vị","1: âm tiết","2: âm vị & âm tiết"],c:0},
+{q:"Nguyên âm là gì?",a:["Có tiếng động","Có tiếng xát","Luồng hơi tự do","Bị cản trở"],c:2},
+{q:"Phụ âm là gì?",a:["Luồng hơi tự do","Có tiếng thanh","Bị cản trở","Không đúng"],c:2},
+{q:"Nhận diện phụ âm dựa vào?",a:["Vị trí, phương thức, tính thanh","Cách phát âm","Vị trí lưỡi","B&C"],c:0},
+{q:"Phụ âm tắc dựa vào?",a:["Vị trí","Phương thức","Tính thanh","Môi"],c:1},
+{q:"Phụ âm môi dựa vào?",a:["Vị trí","Phương thức","Tính thanh","Môi"],c:0},
+{q:"Khác nhau giữa nguyên âm & phụ âm?",a:["Nguyên âm bị cản","Nguyên âm cản một phần","Nguyên âm tự do","Không đúng"],c:2},
+{q:"Âm tiết là gì?",a:["Đơn vị lớn nhất","Đơn vị nhỏ nhất có ngôn điệu","Đơn vị phát ngôn","Âm phụ"],c:1},
+
+{q:"Cấu trúc âm tiết gồm?",a:["Âm đầu, vần, thanh","Âm đầu, chính, cuối","Âm chính, thanh","Âm đầu, thanh"],c:0},
+{q:"Hai câu thơ có bao nhiêu âm tiết?",a:["8","9","10","25"],c:2},
+{q:"/o/ trong 'ngọc' là?",a:["Âm đầu","Âm đệm","Âm chính","Âm cuối"],c:2},
+{q:"Trọng âm trong tiếng Việt?",a:["Rất quan trọng","Khá quan trọng","Không có","Mờ nhạt"],c:3},
+{q:"Chữ viết là gì?",a:["Hình nguyên âm","Hình phụ âm","Hệ thống ký hiệu","A&B"],c:2},
+{q:"Chữ Hán là?",a:["Chữ ghi ý","Chữ ghi âm","Chữ ghi thanh","B&C"],c:0},
+{q:"Chữ Quốc ngữ là?",a:["Ghi thanh","Ghi ý","Bộ chữ Latin ghi âm","Ấn Âu"],c:2},
+{q:"Chữ Nôm là?",a:["Hệ chữ ngữ tố","Chữ ghi âm","Latin","Thuần Việt"],c:0},
+{q:"Từ có chức năng?",a:["Định danh","Cấu tạo & phân biệt","Thông báo","A,B,C"],c:3},
+{q:"Có mấy phương thức cấu tạo từ?",a:["2","2","3","3"],c:2},
+
+{q:"Phương thức láy là?",a:["Gắn phụ tố","Kết hợp hình vị","Lặp vỏ ngữ âm","A&B"],c:2},
+{q:"'Nhẹ như lông hồng' là thành ngữ?",a:["Ẩn dụ","Miêu tả","So sánh","Sai"],c:2},
+{q:"Nghĩa của từ gồm?",a:["Trừu tượng","Biểu vật – niệm – thái","Tự do","A&C"],c:1},
+{q:"'Nuôi ong tay áo' là?",a:["So sánh","Miêu tả","Ẩn dụ","Sai"],c:2},
+{q:"'đá' trong 'ngựa đá' là?",a:["Đồng nghĩa","Trái nghĩa","Gần nghĩa","Đồng âm"],c:3},
+{q:"Cụm từ là?",a:["Mở rộng từ","Thu hẹp nghĩa","Nối chức năng","B&C"],c:0},
+{q:"Cụm danh từ gọi là?",a:["Danh tính","Động ngữ","Tính ngữ","Danh ngữ"],c:3},
+{q:"Cụm tính từ gọi là?",a:["Từ tính","Tính ngữ","Động ngữ","Danh ngữ"],c:1},
+{q:"Cụm động từ gọi là?",a:["Động tính","Động ngữ","Ngữ nghĩa","Sai"],c:1},
+{q:"Cụm danh từ đủ gồm?",a:["1","2","3","4"],c:2},
+
+{q:"'Những con mèo đen dễ thương ấy' là?",a:["Cụm danh từ","Cụm động từ","Cụm tính từ","Cụm số"],c:0},
+{q:"Phát biểu sai về câu?",a:["Câu thông báo","Trao đáp","Không thông báo","Có nhận định"],c:2},
+{q:"Cấu trúc chủ – vị thuộc?",a:["Ngữ nghĩa","Truyền thống","Chức năng","Miêu tả"],c:1},
+{q:"Trạng, định, bổ ngữ là?",a:["Chính","Phụ","A&B","Sai"],c:1},
+{q:"Bổ ngữ đứng trước/sau?",a:["Danh từ","Động từ","Tính từ","B&C"],c:3},
+{q:"Câu là gì?",a:["Đơn vị ngữ pháp","Lời nói lớn nhất","Nhỏ nhất","Ngữ nghĩa"],c:0},
+{q:"Phát ngôn là?",a:["Ngữ nghĩa","Lời nói hoàn chỉnh","Bất kỳ","Suy nghĩ"],c:1},
+{q:"Chức năng danh từ?",a:["Phụ","Vị ngữ","Chủ & bổ","Trạng"],c:2},
+{q:"Chức năng động từ?",a:["Vị & bổ","Phụ","Chủ","Biệt lập"],c:0},
+{q:"Kiểu phát ngôn?",a:["Thể hiện","Nghi vấn","Hỏi","Trần thuật – nghi vấn – cầu khiến – cảm thán"],c:3},
+
+{q:"[i,u,ư] là nguyên âm?",a:["Cao","Thấp","Nửa","Sai"],c:0},
+{q:"[u,ư,o,ô,ơ] lưỡi?",a:["Trước","Giữ","Thấp","Sau"],c:3},
+{q:"Nhận diện nguyên âm dựa vào?",a:["Lưỡi","Vị trí","Môi","A,B,C"],c:3},
+{q:"Biết tròn/dẹt môi dựa vào?",a:["Lưỡi","Môi","Độ nâng","Sai"],c:1},
+{q:"3 vạch đứng hình thang là?",a:["3 âm cao","3 hàng trước-giữa-sau","3 hàng cao","3 âm thấp"],c:1},
+{q:"Bên trái vạch đứng là?",a:["Không tròn môi","Tròn môi","Thấp","Cao"],c:0},
+{q:"Bên phải vạch đứng là?",a:["Không tròn","Tròn môi","Thấp","Cao"],c:1},
+{q:"4 vạch ngang là?",a:["Tròn/dẹt","Dài/ngắn","Trước/sau","Cao → thấp"],c:3},
+{q:"Phát biểu sai?",a:["Ngôn ngữ không giai cấp","Ngôn ngữ có giai cấp","Học qua tương tác","Sai"],c:1},
+{q:"'Vừa viết xong rồi' là cụm?",a:["Đại từ","Danh từ","Tính từ","Động từ"],c:3}
+];
+
+let i=0,score=0;
+function load(){
+ document.getElementById("count").innerText=`Câu ${i+1}/100`;
+ document.getElementById("q").innerText=quiz[i].q;
+ let h="";
+ quiz[i].a.forEach((x,j)=>h+=`<label><input type="radio" name="ans" value="${j}"> ${x}</label><br>`);
+ document.getElementById("a").innerHTML=h;
+ document.getElementById("r").innerText="";
+}
+function check(){
+ let x=document.querySelector("input[name='ans']:checked");
+ if(!x)return;
+ if(+x.value===quiz[i].c){
+  score++;
+  document.getElementById("r").innerHTML="<span class='correct'>✅ Đúng</span>";
+ } else document.getElementById("r").innerHTML="<span class='wrong'>❌ Sai</span>";
+ document.getElementById("s").innerText=score;
+}
+function next(){
+ i++;
+ if(i<quiz.length)load();
+ else document.querySelector(".quiz").innerHTML=`<h2>🎉 Hoàn thành</h2><h3>Điểm: ${score}/100</h3>`;
+}
+load();
+</script>
+</body>
+</html>{q:"Chữ Nôm là?",a:["Hệ chữ ngữ tố","Chữ ghi âm","Latin","Thuần Việt"],c:0},
+{q:"Từ có chức năng?",a:["Định danh","Cấu tạo & phân biệt","Thông báo","A,B,C"],c:3},
+{q:"Có mấy phương thức cấu tạo từ?",a:["2","2","3","3"],c:2},
+
+{q:"Phương thức láy là?",a:["Gắn phụ tố","Kết hợp hình vị","Lặp vỏ ngữ âm","A&B"],c:2},
+{q:"'Nhẹ như lông hồng' là thành ngữ?",a:["Ẩn dụ","Miêu tả","So sánh","Sai"],c:2},
+{q:"Nghĩa của từ gồm?",a:["Trừu tượng","Biểu vật – niệm – thái","Tự do","A&C"],c:1},
+{q:"'Nuôi ong tay áo' là?",a:["So sánh","Miêu tả","Ẩn dụ","Sai"],c:2},
+{q:"'đá' trong 'ngựa đá' là?",a:["Đồng nghĩa","Trái nghĩa","Gần nghĩa","Đồng âm"],c:3},
+{q:"Cụm từ là?",a:["Mở rộng từ","Thu hẹp nghĩa","Nối chức năng","B&C"],c:0},
+{q:"Cụm danh từ gọi là?",a:["Danh tính","Động ngữ","Tính ngữ","Danh ngữ"],c:3},
+{q:"Cụm tính từ gọi là?",a:["Từ tính","Tính ngữ","Động ngữ","Danh ngữ"],c:1},
+{q:"Cụm động từ gọi là?",a:["Động tính","Động ngữ","Ngữ nghĩa","Sai"],c:1},
+{q:"Cụm danh từ đủ gồm?",a:["1","2","3","4"],c:2},
+
+{q:"'Những con mèo đen dễ thương ấy' là?",a:["Cụm danh từ","Cụm động từ","Cụm tính từ","Cụm số"],c:0},
+{q:"Phát biểu sai về câu?",a:["Câu thông báo","Trao đáp","Không thông báo","Có nhận định"],c:2},
+{q:"Cấu trúc chủ – vị thuộc?",a:["Ngữ nghĩa","Truyền thống","Chức năng","Miêu tả"],c:1},
+{q:"Trạng, định, bổ ngữ là?",a:["Chính","Phụ","A&B","Sai"],c:1},
+{q:"Bổ ngữ đứng trước/sau?",a:["Danh từ","Động từ","Tính từ","B&C"],c:3},
+{q:"Câu là gì?",a:["Đơn vị ngữ pháp","Lời nói lớn nhất","Nhỏ nhất","Ngữ nghĩa"],c:0},
+{q:"Phát ngôn là?",a:["Ngữ nghĩa","Lời nói hoàn chỉnh","Bất kỳ","Suy nghĩ"],c:1},
+{q:"Chức năng danh từ?",a:["Phụ","Vị ngữ","Chủ & bổ","Trạng"],c:2},
+{q:"Chức năng động từ?",a:["Vị & bổ","Phụ","Chủ","Biệt lập"],c:0},
+{q:"Kiểu phát ngôn?",a:["Thể hiện","Nghi vấn","Hỏi","Trần thuật – nghi vấn – cầu khiến – cảm thán"],c:3},
+
+{q:"[i,u,ư] là nguyên âm?",a:["Cao","Thấp","Nửa","Sai"],c:0},
+{q:"[u,ư,o,ô,ơ] lưỡi?",a:["Trước","Giữ","Thấp","Sau"],c:3},
+{q:"Nhận diện nguyên âm dựa vào?",a:["Lưỡi","Vị trí","Môi","A,B,C"],c:3},
+{q:"Biết tròn/dẹt môi dựa vào?",a:["Lưỡi","Môi","Độ nâng","Sai"],c:1},
+{q:"3 vạch đứng hình thang là?",a:["3 âm cao","3 hàng trước-giữa-sau","3 hàng cao","3 âm thấp"],c:1},
+{q:"Bên trái vạch đứng là?",a:["Không tròn môi","Tròn môi","Thấp","Cao"],c:0},
+{q:"Bên phải vạch đứng là?",a:["Không tròn","Tròn môi","Thấp","Cao"],c:1},
+{q:"4 vạch ngang là?",a:["Tròn/dẹt","Dài/ngắn","Trước/sau","Cao → thấp"],c:3},
+{q:"Phát biểu sai?",a:["Ngôn ngữ không giai cấp","Ngôn ngữ có giai cấp","Học qua tương tác","Sai"],c:1},
+{q:"'Vừa viết xong rồi' là cụm?",a:["Đại từ","Danh từ","Tính từ","Động từ"],c:3}
+];
+
+let i=0,score=0;
+function load(){
+ document.getElementById("count").innerText=`Câu ${i+1}/100`;
+ document.getElementById("q").innerText=quiz[i].q;
+ let h="";
+ quiz[i].a.forEach((x,j)=>h+=`<label><input type="radio" name="ans" value="${j}"> ${x}</label><br>`);
+ document.getElementById("a").innerHTML=h;
+ document.getElementById("r").innerText="";
+}
+function check(){
+ let x=document.querySelector("input[name='ans']:checked");
+ if(!x)return;
+ if(+x.value===quiz[i].c){
+  score++;
+  document.getElementById("r").innerHTML="<span class='correct'>✅ Đúng</span>";
+ } else document.getElementById("r").innerHTML="<span class='wrong'>❌ Sai</span>";
+ document.getElementById("s").innerText=score;
+}
+function next(){
+ i++;
+ if(i<quiz.length)load();
+ else document.querySelector(".quiz").innerHTML=`<h2>🎉 Hoàn thành</h2><h3>Điểm: ${score}/100</h3>`;
+}
+load();
+</script>
+</body>
+</html>            box-shadow: 0 0 30px rgba(255, 0, 0, 0.6);
             animation: pulse 1.5s infinite;
         }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
